@@ -1,0 +1,23 @@
+/* ── Hermes Console: 行尾裁字 ─────────────────────────────────────────────────
+   追加到 .obsidian/plugins/hermes-console/styles.css 末尾, 然后
+   Ctrl+P → "Reload app without saving" (插件 CSS 加载时注入, 不重载不生效)。
+
+   症状: 终端每行行尾 1-2 个汉字 / 2-3 个西文被切掉。
+   试过无效: 右 padding 16→26px、滚动条 8→4px、换字体栈、
+             onOpen 后 300/800/1600/3000ms 延迟 re-fit、重启 Obsidian、
+             手动 resize(cols-1) 再 resize(cols) 强制重排。
+
+   根因: xterm 的 DomRenderer 给每行 div 写了两个行内样式
+           style.width    = canvas.width (= cols × 单字宽)
+           style.overflow = "hidden"
+         行盒自己按 cols 定宽, 又自己裁掉超出部分 → 行尾约 2 cells 的墨迹被吃掉。
+         裁字的是行盒本身, 所以任何"重新算列数"的思路都不成立。
+
+   修法: 覆盖行内 overflow。多出的墨迹落进 .xterm 本来就有的右内边距(默认 26px)。
+
+   复发: 插件升级会覆盖 styles.css → 按本文件重打这一条即可。
+   自检: grep -n "xterm-rows > div" .obsidian/plugins/hermes-console/styles.css
+   ──────────────────────────────────────────────────────────────────────────── */
+.terminal-session .xterm-rows > div {
+  overflow: visible !important;
+}
